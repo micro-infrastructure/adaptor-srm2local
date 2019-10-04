@@ -1,11 +1,11 @@
 .PHONY: build
 
 build:
-	docker build -t recap/process-srm2local-adaptor .
+	docker build -t micro-infrastructure/adaptor-srm2local .
 
 run: build
-	docker run -dt --rm -P recap/process-srm2local-adaptor
+	docker run -dt --rm -P micro-infrastructure/adaptor-srm2local
 
 push: build
-	docker push recap/process-srm2local-adaptor
+	docker push micro-infrastructure/adaptor-srm2local
 
