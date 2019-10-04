@@ -24,7 +24,7 @@ class Srm2Local():
         self.command = command
         self.webhook = webhook
 
-        self.container_uri = "shub://recap/MicroInfrastructure:srm2local"
+        self.container_uri = "shub://micro-infrastructure/adaptor-srm2local:latest"
     
     def run(self):
         srm_paths = self.command['src']['paths']
