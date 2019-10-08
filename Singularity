@@ -1,29 +1,48 @@
 BootStrap: docker
 From: ubuntu:16.04
 
+%files
+    ./assets/srmclient-2.6.28.tar.gz    /var/local
+    ./assets/voms.grid.sara.nl.lsc      /var/local
+    ./assets/lofar.vo                   /var/local
+    ./scripts/unpack_args.py            /var/local
+    ./scripts/execute_webhook.py        /var/local
+
 %post
+    apt-get update && apt-get install -y wget curl python3 --no-install-recommends
+
+    echo "deb [trusted=yes] http://repository.egi.eu/sw/production/cas/1/current egi-igtf core" >> /etc/apt/sources.list
+    wget -q -O - http://repository.egi.eu/sw/production/cas/1/current/GPG-KEY-EUGridPMA-RPM-3 | apt-key add -
+    
     apt-get update && apt-get install -y \
-        curl \
         openjdk-8-jdk-headless \
+        globus-gass-copy-progs \
+        voms-clients \
+        ca-policy-egi-core \
+        fetch-crl \
     && rm -rf /var/lib/apt/lists/*
 
-    cd /var/local
-
-    curl -L "https://www.astron.nl/lofarwiki/lib/exe/fetch.php?media=public:lofar_grid_clients.tar.gz" | tar xz
-
-    bash -c "source lofar_grid/init.sh && source lofar_grid/update_certificates_eugridpma.sh"
+    cd /var/local && tar -xzf srmclient-2.6.28.tar.gz \
+        && mv srmclient-2.6.28 /opt/srmclient-2.6.28 \
+        && mkdir -p /etc/grid-security/vomsdir/lofar \
+        && mv voms.grid.sara.nl.lsc /etc/grid-security/vomsdir/lofar \
+        && mkdir -p /etc/vomses \
+        && mv lofar.vo /etc/vomses
 
 %runscript
-    export X509_USER_PROXY=$HOME/.proxy
+    export SRM_PATH=/opt/srmclient-2.6.28/usr/share/srm
+    export PATH=/opt/srmclient-2.6.28/usr/bin:$PATH
 
-    DIR="/var/local/lofar_grid"
-
-    export SRM_PATH=$DIR/srmclient-2.6.28/usr/share/srm
-    export X509_CERT_DIR=$DIR/voms-clients/etc/certificates
-    export PATH=$DIR/srmclient-2.6.28/usr/bin:$DIR/voms-clients/bin:$PATH
-    export GLOBUS_GSSAPI_FORCE_TLS=1
-
+    # Unpack arguments (proxy and copyjobfile)
+    python3 /var/local/unpack_args.py $1 $PWD
+    
     # Perform copying (+ stopwatch)
-    echo "Starting: $(date)"
-    srmcp -server_mode=passive -copyjobfile=$HOME/copyjobfile
-    echo "Finished: $(date)"
+    date
+    srmcp -server_mode=passive -x509_user_proxy=proxy -copyjobfile=copyjobfile
+    date
+
+    # Execute webhook
+    python3 /var/local/execute_webhook.py $1  
+    
+    # Cleanup
+    rm copyjobfile proxy
