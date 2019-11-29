@@ -6,13 +6,19 @@ from paramiko import AutoAddPolicy, SSHClient
 from helpers import base64_dict, base64_str
 
 
-def execute_entrypoint(payload):
+def execute_entrypoint(payload, db):
     command = payload['cmd']
     webhook = payload['webhook']
 
+    # Generate job identifier
+    identifier = str(uuid4().hex[0:6])
+
     # Run container
     container = Srm2Local(identifier, command, webhook)
-    result = container.run()
+    container.run()
+
+    db.set(identifier, 'active')
+    db.dump()
 
     return (result, 202)
 
@@ -52,7 +58,7 @@ class Srm2Local():
         client.connect(hpc_host, 22, hpc_username, hpc_password)
 
         # Run Singuliarty container using Slurm
-        filename = f'job-{uuid4().hex[0:6]}.sh'
+        filename = f'job-{self.identifier}.sh'
         bash = f'singularity run -B {hpc_path}:/local {self.container_uri} {arguments}'
         sbatch = 'sbatch -t 0-1:00'
 
@@ -69,8 +75,6 @@ class Srm2Local():
 
         # Close SSH connection to HPC
         client.close()
-
-        return {}
 
     def as_copyjobfile(self, paths):
         src_dest = [join(f'{path} file:////local/', basename(path)) for path in paths]

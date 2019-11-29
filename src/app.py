@@ -4,15 +4,18 @@ from threading import Thread
 
 from flask import Flask, request
 from pika import BlockingConnection, ConnectionParameters
+from pickledb import load as pickle
 
 from helpers import json_respone
 from srm2local import execute_entrypoint
 
 ### Config
 
-amqp_host = environ['AMQP_HOST']
+amqp_host = environ.get('AMQP_HOST')
 amqp_exchange = 'function_proxy'
 amqp_routingkey = 'functions.srm2local.*'
+
+db = pickle('srm2local.db', False)
 
 ### Shared Entrypoints (Pika/Flask) 
 
@@ -22,7 +25,7 @@ functions = {
 
 ### Pika
 
-if amqp_host != '':
+if amqp_host is not None:
     connection = BlockingConnection(ConnectionParameters(host=amqp_host))
     channel = connection.channel()
     channel.exchange_declare(amqp_exchange, 'topic')
@@ -38,7 +41,7 @@ if amqp_host != '':
         function_name = method.routing_key.split('.')[-1]
 
         function = functions[function_name]
-        result, status = function(message['body'])
+        result, status = function(message['body'], db)
 
         # Reply to sender over message queue
         reply = dumps({
@@ -57,14 +60,14 @@ app = Flask(__name__)
 @app.route('/execute', methods=['POST'])
 def execute():
     payload = request.get_json()
-    result, status = functions.get('execute')(payload)
+    result, status = functions.get('execute')(payload, db)
 
     return json_respone(result, status)
 
 ### Main
 
 if __name__ == '__main__':
-    if amqp_host != '':
+    if amqp_host is not None:
         # Listen for AMQP messages in the background
         Thread(target=channel.start_consuming).start()
 

@@ -12,6 +12,7 @@ loguru = "*"
 flask = "*"
 requests = "*"
 pika = "*"
+pickledb = "*"
 
 [requires]
 python_version = "3.7"
