@@ -1,3 +1,4 @@
+from os import environ
 from os.path import basename, join
 from uuid import uuid4
 
@@ -6,29 +7,44 @@ from paramiko import AutoAddPolicy, SSHClient
 from helpers import base64_dict, base64_str
 
 
-def execute_entrypoint(payload, db):
+def execute(payload, db):
     command = payload['cmd']
-    webhook = payload['webhook']
 
     # Generate job identifier
     identifier = str(uuid4().hex[0:6])
 
     # Run container
-    container = Srm2Local(identifier, command, webhook)
+    container = Srm2Local(identifier, command)
     container.run()
 
     db.set(identifier, 'active')
     db.dump()
 
-    return (result, 202)
+    return ({'requestId': identifier}, 202)
+
+
+def status(payload, db):
+    identifier = payload['identifier']
+
+    status = db.get(identifier)
+
+    return ({'requestId': identifier, 'status': status}, 200)
+
+
+def callback(payload, db):
+    identifier = payload['identifier']
+
+    db.set(identifier, 'finished')
+    db.dump()
+
+    return ({}, 200)
 
 
 class Srm2Local():
     
-    def __init__(self, identifier, command, webhook):
+    def __init__(self, identifier, command):
         self.identifier = identifier
         self.command = command
-        self.webhook = webhook
 
         self.container_uri = "shub://micro-infrastructure/adaptor-srm2local:latest"
     
@@ -41,15 +57,19 @@ class Srm2Local():
         hpc_password = self.command['credentials']['hpcPassword']
 
         # Prepare webhook
-        self.webhook['response'] = {
-            'id': self.identifier
+        webhook = {
+            'url': environ.get('CALLBACK_URL'),
+            'headers': {},
+            'response': {
+                'identifier': self.identifier
+            }    
         }
 
         # Prepare arguments
         arguments = base64_dict({
             'copyjobfile': self.as_copyjobfile(srm_paths),
             'proxy': srm_certificate,
-            'webhook': base64_dict(self.webhook)
+            'webhook': base64_dict(webhook)
         })
 
         # Open SSH connection to HPC

@@ -7,7 +7,7 @@ from pika import BlockingConnection, ConnectionParameters
 from pickledb import load as pickle
 
 from helpers import json_respone
-from srm2local import execute_entrypoint
+from srm2local import callback, execute, status
 
 ### Config
 
@@ -20,7 +20,9 @@ db = pickle('srm2local.db', False)
 ### Shared Entrypoints (Pika/Flask) 
 
 functions = {
-    'execute': execute_entrypoint,
+    'execute': execute,
+    'status': status,
+    'callback': callback,
 }
 
 ### Pika
@@ -64,9 +66,30 @@ def execute():
 
     return json_respone(result, status)
 
+
+@app.route('/status/<identifier>', methods=['GET'])
+def status(identifier):
+    payload = {'identifier': identifier}
+    result, status = functions.get('status')(payload, db)
+
+    return json_respone(result, status)
+
+
+@app.route('/callback', methods=['POST'])
+def callback():
+    payload = request.get_json()
+    result, status = functions.get('callback')(payload, db)
+
+    return json_respone(result, status)
+
 ### Main
 
 if __name__ == '__main__':
+    callback_url = environ.get('CALLBACK_URL')
+    if callback_url is None:
+        print('Please set the CALLBACK_URL environment variable.')
+        exit(1)
+
     if amqp_host is not None:
         # Listen for AMQP messages in the background
         Thread(target=channel.start_consuming).start()
