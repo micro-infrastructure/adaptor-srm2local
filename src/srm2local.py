@@ -1,5 +1,6 @@
 from os import environ
 from os.path import basename, join
+from urlparse import urljoin
 from uuid import uuid4
 
 from paramiko import AutoAddPolicy, SSHClient
@@ -57,8 +58,9 @@ class Srm2Local():
         hpc_password = self.command['credentials']['hpcPassword']
 
         # Prepare webhook
+        callback_url = urljoin(environ.get('SRM2LOCAL_SERVICE'), '/callback')
         webhook = {
-            'url': environ.get('CALLBACK_URL'),
+            'url': callback_url,
             'headers': {},
             'response': {
                 'identifier': self.identifier

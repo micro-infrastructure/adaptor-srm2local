@@ -85,9 +85,9 @@ def callback():
 ### Main
 
 if __name__ == '__main__':
-    callback_url = environ.get('CALLBACK_URL')
+    callback_url = environ.get('SRM2LOCAL_SERVICE')
     if callback_url is None:
-        print('Please set the CALLBACK_URL environment variable.')
+        print('Please set the SRM2LOCAL_SERVICE (external URL) environment variable.')
         exit(1)
 
     if amqp_host is not None:
