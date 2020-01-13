@@ -25,6 +25,9 @@ RUN cd /var/local && tar -xzf srmclient-2.6.28.tar.gz \
  && mkdir -p /etc/grid-security/vomsdir/lofar \
  && mv voms.grid.sara.nl.lsc /etc/grid-security/vomsdir/lofar \
  && mkdir -p /etc/vomses \
- && mv lofar.vo /etc/vomses
+ && mv lofar.vo /etc/vomses \ 
+ && mkdir /local \
+ && touch /local/.keep
+
 
 ENTRYPOINT [ "/var/local/entrypoint.sh" ]
