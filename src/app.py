@@ -7,7 +7,7 @@ from pika import BlockingConnection, ConnectionParameters
 from pickledb import load as pickle
 
 from helpers import json_respone
-from srm2local import callback, execute, status
+from srm2local import callback, copy, status
 
 ### Config
 
@@ -20,7 +20,7 @@ db = pickle('srm2local.db', False)
 ### Shared Entrypoints (Pika/Flask) 
 
 functions = {
-    'execute': execute,
+    'copy': copy,
     'status': status,
     'callback': callback,
 }
@@ -59,10 +59,10 @@ if amqp_host is not None:
 
 app = Flask(__name__)
 
-@app.route('/execute', methods=['POST'])
-def execute():
+@app.route('/copy', methods=['POST'])
+def copy():
     payload = request.get_json()
-    result, status = functions.get('execute')(payload, db)
+    result, status = functions.get('copy')(payload, db)
 
     return json_respone(result, status)
 

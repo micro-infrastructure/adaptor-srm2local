@@ -8,7 +8,7 @@ from paramiko import AutoAddPolicy, SSHClient
 from helpers import base64_dict, base64_str
 
 
-def execute(payload, db):
+def copy(payload, db):
     command = payload['cmd']
 
     # Generate job identifier
