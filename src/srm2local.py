@@ -88,11 +88,19 @@ class Srm2Local():
             sbatch += ' --partition=plgrid-testing'
             bash = 'module add plgrid/tools/singularity/stable' + '\n' + bash
 
+        if hpc_host.endswith('lrz.de'):
+            sbatch += ' --cluster mpp2'
+            bash =  'module load slurm_setup/default' + '\n'
+            bash += 'module load charliecloud/0.10' + '\n'
+            bash += 'curl -L https://git.io/JvvIy -o chaplin && chmod +x chaplin' + '\n'
+            bash += './chaplin -d microinfrastructure/adaptor-srm2local-hpc' + '\n'
+            bash += f'ch-run -w adaptor-srm2local-hpc -b {hpc_path}:/local -- bash /var/local/entrypoint.sh {arguments}' + '\n'
+
         client.exec_command(f"""
             echo "$(date) {filename}" >> timestamps
         """)
         client.exec_command(f""" 
-            echo "#!/bin/bash\n{bash}" > {filename} && {sbatch} {filename} && rm {filename}
+            echo "#!/bin/bash\n{bash}" > {filename} && {sbatch} {filename}
         """)
 
         # Close SSH connection to HPC
