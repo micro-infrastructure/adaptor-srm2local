@@ -1,6 +1,6 @@
 from os import environ
 from os.path import basename, join
-from urlparse import urljoin
+from urllib.parse import urljoin
 from uuid import uuid4
 
 from paramiko import AutoAddPolicy, SSHClient
