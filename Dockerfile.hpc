@@ -3,6 +3,7 @@ FROM ubuntu:16.04
 COPY ./assets/entrypoint.sh              /var/local
 COPY ./assets/srmclient-2.6.28.tar.gz    /var/local
 COPY ./assets/voms.grid.sara.nl.lsc      /var/local
+COPY ./assets/lta-url-copy.sh            /var/local
 COPY ./assets/lofar.vo                   /var/local
 COPY ./scripts/unpack_args.py            /var/local
 COPY ./scripts/execute_webhook.py        /var/local
@@ -28,6 +29,5 @@ RUN cd /var/local && tar -xzf srmclient-2.6.28.tar.gz \
  && mv lofar.vo /etc/vomses \ 
  && mkdir /local \
  && touch /local/.keep
-
 
 ENTRYPOINT [ "/var/local/entrypoint.sh" ]

@@ -4,6 +4,7 @@ From: ubuntu:16.04
 %files
     ./assets/srmclient-2.6.28.tar.gz    /var/local
     ./assets/voms.grid.sara.nl.lsc      /var/local
+    ./assets/lta-url-copy.sh            /var/local
     ./assets/lofar.vo                   /var/local
     ./scripts/unpack_args.py            /var/local
     ./scripts/execute_webhook.py        /var/local
@@ -38,7 +39,7 @@ From: ubuntu:16.04
     
     # Perform copying (+ stopwatch)
     date
-    srmcp -server_mode=passive -x509_user_proxy=proxy -copyjobfile=copyjobfile
+    srmcp -use_urlcopy_script=true -urlcopy=/var/local/lta-url-copy.sh -server_mode=passive -x509_user_proxy=proxy -copyjobfile=copyjobfile
     date
 
     # Execute webhook
