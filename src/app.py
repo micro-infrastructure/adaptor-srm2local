@@ -7,7 +7,7 @@ from pika import BlockingConnection, ConnectionParameters
 from pickledb import load as pickle
 
 from helpers import json_respone
-from srm2local import callback, copy, status
+from srm2local import callback_entrypoint, copy_entrypoint, status_entrypoint
 
 ### Config
 
@@ -20,9 +20,9 @@ db = pickle('srm2local.db', False)
 ### Shared Entrypoints (Pika/Flask) 
 
 functions = {
-    'copy': copy,
-    'status': status,
-    'callback': callback,
+    'copy': copy_entrypoint,
+    'status': status_entrypoint,
+    'callback': callback_entrypoint,
 }
 
 ### Pika

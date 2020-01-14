@@ -8,7 +8,7 @@ from paramiko import AutoAddPolicy, SSHClient
 from helpers import base64_dict, base64_str
 
 
-def copy(payload, db):
+def copy_entrypoint(payload, db):
     command = payload['cmd']
 
     # Generate job identifier
@@ -24,7 +24,7 @@ def copy(payload, db):
     return ({'requestId': identifier}, 202)
 
 
-def status(payload, db):
+def status_entrypoint(payload, db):
     identifier = payload['identifier']
 
     status = db.get(identifier)
@@ -32,7 +32,7 @@ def status(payload, db):
     return ({'requestId': identifier, 'status': status}, 200)
 
 
-def callback(payload, db):
+def callback_entrypoint(payload, db):
     identifier = payload['identifier']
 
     db.set(identifier, 'finished')
