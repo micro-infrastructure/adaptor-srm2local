@@ -39,7 +39,7 @@ From: ubuntu:16.04
     
     # Perform copying (+ stopwatch)
     date
-    srmcp -use_urlcopy_script=true -urlcopy=/var/local/lta-url-copy.sh -server_mode=passive -x509_user_proxy=proxy -copyjobfile=copyjobfile
+    srmcp -debug -use_urlcopy_script=true -urlcopy=/var/local/lta-url-copy.sh -server_mode=passive -x509_user_proxy=proxy -copyjobfile=copyjobfile
     date
 
     # Execute webhook
