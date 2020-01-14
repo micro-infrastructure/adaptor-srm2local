@@ -39,12 +39,15 @@ def create_partition(list, n):
     yield from create_partition(list[n:], n)
 
 
-def update_status(identifier, status, files, callback_url):
+def callback(identifier, status, files, callback_url):
     payload = {
         'identifier': identifier,
         'status': status,
-        'files': files
     }
+
+    if files is not None:
+        payload['files'] = files
+
     post_json(payload, callback_url)
 
 
@@ -86,11 +89,11 @@ if __name__ == '__main__':
         ]
 
         try:
-            update_status(identifier, 'downloading', partition, callback_url)
+            callback(identifier, 'downloading', partition, callback_url)
             run(command, env={ 'parallelism': parallelism })
-            update_status(identifier, 'complete' partition, callback_url)
+            callback(identifier, 'complete' partition, callback_url)
         except:
-            update_status(identifier, 'failed', partition, callback_url)
+            callback(identifier, 'failed', partition, callback_url)
 
         # Cleanup
         remove(copyjob_file)

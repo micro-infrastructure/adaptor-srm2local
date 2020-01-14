@@ -18,7 +18,14 @@ def copy_entrypoint(payload, db):
     container = Srm2Local(identifier, command)
     container.run()
 
-    db.set(identifier, 'active')
+    # Record keeping
+    files = [basename(path) for path in command['src']['paths']]
+
+    db.set(f'{identifier}_status', 'queued')
+    db.set(f'{identifier}_files', files)
+    for f in files:
+        db.set(f'{identifier}_files_{f}', 'pending')
+
     db.dump()
 
     return ({'requestId': identifier}, 202)
@@ -26,18 +33,33 @@ def copy_entrypoint(payload, db):
 
 def status_entrypoint(payload, db):
     identifier = payload['identifier']
+    status = db.get(f'{identifier}_status')
 
-    status = db.get(identifier)
+    files = db.get(f'{identifier}_files')
+    files = {
+        f: db.get(f'{identifier}_files_{f}') for f in files
+    }
 
-    return ({'requestId': identifier, 'status': status}, 200)
+    return ({
+        'requestId': identifier,
+        'status': status
+        'files': files
+    }, 200)
 
 
 def callback_entrypoint(payload, db):
     identifier = payload['identifier']
+    status = payload['status']
+    files = payload.get('files')
 
-    db.set(identifier, 'finished')
+    if files is not None:
+        for f in files:
+            filename = basename(f)
+            db.set(f'{identifier}_{filename}', status)
+    else:
+        db.set(f'{identifier}_status', status)
+
     db.dump()
-
     return ({}, 200)
 
 
