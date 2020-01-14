@@ -58,7 +58,7 @@ class Srm2Local():
         hpc_password = self.command['credentials']['hpcPassword']
 
         # Prepare webhook
-        callback_url = urljoin(environ.get('SRM2LOCAL_SERVICE'), '/callback')
+        callback_url = urljoin('http://' + environ.get('SRM2LOCAL_SERVICE'), '/callback')
         webhook = {
             'url': callback_url,
             'headers': {},
