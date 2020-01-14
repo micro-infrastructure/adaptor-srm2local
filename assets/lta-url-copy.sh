@@ -118,7 +118,7 @@ done
 test_that_arg_exists -src-host-port $src_host_port
 test_that_arg_exists -src-path  $src_path
 test_that_arg_exists -dst-host-port $dst_host_port
-test_that_arg_exists  -dst-path  $dst_path
+test_that_arg_exists -dst-path  $dst_path
 
 decho X509_USER_PROXY = $X509_USER_PROXY
 
@@ -143,6 +143,14 @@ if [ "$buffer_size" != "" ]
 then
     cmd="$cmd -bs $buffer_size"
 fi
+
+# Added: 
+cmd="$cmd -fast"
+if [ -n "$parrallelism" ]
+then
+	cmd="$cmd -p $parrallelism"  
+fi
+
 cmd="$cmd -nodcau $src $dst"
 decho $cmd
 exec $cmd
