@@ -104,7 +104,7 @@ class Srm2Local():
         # Run Singuliarty container using Slurm
         filename = f'job-{self.identifier}.sh'
         bash = f'singularity run -B {hpc_path}:/local {self.container_uri} {arguments}'
-        sbatch = 'sbatch -t 0-1:00'
+        sbatch = 'sbatch -t 0-1:00 --ntasks=1 --cpus-per-task=8 --mem=8gb'
 
         if hpc_host == 'pro.cyfronet.pl':
             sbatch += ' --partition=plgrid-testing'
@@ -115,7 +115,7 @@ class Srm2Local():
             bash =  'module load slurm_setup/default' + '\n'
             bash += 'module load charliecloud/0.10' + '\n'
             bash += 'curl -L https://git.io/JvvIy -o chaplin && chmod +x chaplin' + '\n'
-            bash += './chaplin -d microinfrastructure/adaptor-srm2local-hpc' + '\n'
+            bash += './chaplin -n -d microinfrastructure/adaptor-srm2local-hpc' + '\n'
             bash += f'ch-run -w adaptor-srm2local-hpc -b {hpc_path}:/local -- bash /var/local/entrypoint.sh {arguments}' + '\n'
 
         client.exec_command(f"""
