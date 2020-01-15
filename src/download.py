@@ -30,7 +30,7 @@ def post_json(payload, url):
 
 
 def create_copyjob(paths):
-    src_dest = [path.join('{p} file:////local/', path.basename(p)) for p in paths]
+    src_dest = [path.join(f'{p} file:////local/', path.basename(p)) for p in paths]
     return '\n'.join(src_dest)
 
 
