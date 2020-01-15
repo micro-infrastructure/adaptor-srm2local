@@ -39,7 +39,7 @@ def create_partitions(list, n):
         return
 
     yield list[:n]
-    yield from create_partition(list[n:], n)
+    yield from create_partitions(list[n:], n)
 
 
 def callback(identifier, status, files, callback_url, error=None):

@@ -79,7 +79,7 @@ class Srm2Local():
         hpc_username = self.command['credentials']['hpcUsername']
         hpc_password = self.command['credentials']['hpcPassword']
 
-        options = self.command.get('options', {}),
+        options = self.command.get('options', {})
         parallelism = options.get('parallelism', 1)
         partition_size = options.get('partition_size', 5)
 
