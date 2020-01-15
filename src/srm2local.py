@@ -79,14 +79,18 @@ class Srm2Local():
         hpc_username = self.command['credentials']['hpcUsername']
         hpc_password = self.command['credentials']['hpcPassword']
 
+        options = self.command.get('options', {}),
+        parallelism = options.get('parallelism', 1)
+        partition_size = options.get('partition_size', 5)
+
         # Prepare arguments
         callback_url = urljoin('http://' + environ.get('SRM2LOCAL_SERVICE'), '/callback')
         arguments = base64_dict({
             'identifier': self.identifier,
             'callback_url': callback_url,
             'files': srm_paths,
-            'parallelism': 2,
-            'partition_size': 2,
+            'parallelism': parallelism,
+            'partition_size': partition_size,
             'proxy': srm_certificate
         })
 
