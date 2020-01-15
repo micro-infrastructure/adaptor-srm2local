@@ -42,7 +42,7 @@ def status_entrypoint(payload, db):
 
     return ({
         'requestId': identifier,
-        'status': status
+        'status': status,
         'files': files
     }, 200)
 
@@ -79,22 +79,18 @@ class Srm2Local():
         hpc_username = self.command['credentials']['hpcUsername']
         hpc_password = self.command['credentials']['hpcPassword']
 
-        # Prepare webhook
-        callback_url = urljoin('http://' + environ.get('SRM2LOCAL_SERVICE'), '/callback')
-        webhook = {
-            'url': callback_url,
-            'headers': {},
-            'response': {
-                'identifier': self.identifier
-            }    
-        }
-
         # Prepare arguments
+        callback_url = urljoin('http://' + environ.get('SRM2LOCAL_SERVICE'), '/callback')
         arguments = base64_dict({
-            'copyjobfile': self.as_copyjobfile(srm_paths),
-            'proxy': srm_certificate,
-            'webhook': base64_dict(webhook)
+            'identifier': self.identifier,
+            'callback_url': callback_url,
+            'files': srm_paths,
+            'parallelism': 2,
+            'partition_size': 2,
+            'proxy': srm_certificate
         })
+
+        print(arguments)
 
         # Open SSH connection to HPC
         client = SSHClient()

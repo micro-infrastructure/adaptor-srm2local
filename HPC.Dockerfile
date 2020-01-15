@@ -5,8 +5,6 @@ COPY ./assets/srmclient-2.6.28.tar.gz    /var/local
 COPY ./assets/voms.grid.sara.nl.lsc      /var/local
 COPY ./assets/lta-url-copy.sh            /var/local
 COPY ./assets/lofar.vo                   /var/local
-COPY ./scripts/unpack_args.py            /var/local
-COPY ./scripts/execute_webhook.py        /var/local
 
 RUN apt-get update && apt-get install -y wget curl python3 --no-install-recommends
 
@@ -29,5 +27,7 @@ RUN cd /var/local && tar -xzf srmclient-2.6.28.tar.gz \
  && mv lofar.vo /etc/vomses \ 
  && mkdir /local \
  && touch /local/.keep
+
+COPY ./src/download.py /var/local
 
 ENTRYPOINT [ "/var/local/entrypoint.sh" ]

@@ -1,9 +1,10 @@
 from base64 import b64decode
 from json import dumps, loads
 from zlib import decompress
-from subprocess import run
+from subprocess import run, PIPE
 from sys import argv, exc_info
-from os import path, remove
+from os import path, remove, environ
+from urllib.request import Request, urlopen
 
 def decode_dict(d):
     return loads(b64decode(d).decode('UTF-8'))
@@ -14,21 +15,21 @@ def decode_str(s):
 
 
 def post_json(payload, url):
+    print(payload)
+
     data = dumps(payload).encode('UTF-8')
-    headers = {
-        'Content-Type': 'application/json'
-    }
+    headers = { 'Content-Type': 'application/json' }
 
     try:
         request = Request(url, data, headers)
-        urlopen(req)
+        urlopen(request)
     except:
         print('Failed to post JSON to: ' + url)
 
 
 def create_copyjob(paths):
-    src_dest = [join(f'{path} file:////local/', basename(path)) for path in paths]
-    return base64_str('\n'.join(src_dest))
+    src_dest = [path.join(p + ' file:////local/', path.basename(p)) for p in paths]
+    return '\n'.join(src_dest)
 
 
 def create_partition(list, n):
@@ -39,7 +40,7 @@ def create_partition(list, n):
     yield from create_partition(list[n:], n)
 
 
-def callback(identifier, status, files, callback_url):
+def callback(identifier, status, files, callback_url, error=None):
     payload = {
         'identifier': identifier,
         'status': status,
@@ -47,6 +48,9 @@ def callback(identifier, status, files, callback_url):
 
     if files is not None:
         payload['files'] = files
+
+    if error is not None:
+        payload['error'] = error
 
     post_json(payload, callback_url)
 
@@ -57,7 +61,6 @@ if __name__ == '__main__':
 
     # Unpack arguments
     callback_url = arguments['callback_url']
-    destination = arguments['destination']
     files = arguments['files']
     identifier = arguments['identifier']
     parallelism = arguments['parallelism']
@@ -72,7 +75,7 @@ if __name__ == '__main__':
     # Process files partition by partition
     for (p, partition) in enumerate(create_partition(files, partition_size)):
         copyjob = create_copyjob(partition)
-        copyjob_file = path.join(destination, f'copyjob_{p}')
+        copyjob_file = path.join(working_dir, 'copyjob_' + str(p))
 
         # Write copyjob to file
         with open(copyjob_file, 'w') as f:
@@ -84,16 +87,20 @@ if __name__ == '__main__':
             '-use_urlcopy_script=true',
             '-urlcopy=/var/local/lta-url-copy.sh',
             '-server_mode=passive',
-            f'-x509_user_proxy={proxy_file}',
-            f'-copyjobfile={copyjob_file}'
+            '-x509_user_proxy=' + proxy_file,
+            '-copyjobfile=' + copyjob_file
         ]
+
+        env = environ.copy()
+        env['parallelism'] = str(parallelism)
 
         try:
             callback(identifier, 'downloading', partition, callback_url)
-            run(command, env={ 'parallelism': parallelism })
-            callback(identifier, 'complete' partition, callback_url)
-        except:
-            callback(identifier, 'failed', partition, callback_url)
+            run(command, env=env, stdout=PIPE)
+            callback(identifier, 'complete', partition, callback_url)
+        except Exception as e:
+            error = str(e)
+            callback(identifier, 'failed', partition, callback_url, error)
 
         # Cleanup
         remove(copyjob_file)

@@ -6,8 +6,7 @@ From: ubuntu:16.04
     ./assets/voms.grid.sara.nl.lsc      /var/local
     ./assets/lta-url-copy.sh            /var/local
     ./assets/lofar.vo                   /var/local
-    ./scripts/unpack_args.py            /var/local
-    ./scripts/execute_webhook.py        /var/local
+    ./src/download.py                   /var/local
 
 %post
     apt-get update && apt-get install -y wget curl python3 --no-install-recommends
@@ -31,19 +30,8 @@ From: ubuntu:16.04
         && mv lofar.vo /etc/vomses
 
 %runscript
+    #!/bin/bash
     export SRM_PATH=/opt/srmclient-2.6.28/usr/share/srm
     export PATH=/opt/srmclient-2.6.28/usr/bin:$PATH
 
-    # Unpack arguments (proxy and copyjobfile)
-    python3 /var/local/unpack_args.py $1 $PWD
-    
-    # Perform copying (+ stopwatch)
-    date
-    srmcp -debug -use_urlcopy_script=true -urlcopy=/var/local/lta-url-copy.sh -server_mode=passive -x509_user_proxy=proxy -copyjobfile=copyjobfile
-    date
-
-    # Execute webhook
-    python3 /var/local/execute_webhook.py $1  
-    
-    # Cleanup
-    rm copyjobfile proxy
+    python3 /var/local/download.py $1 $PWD
