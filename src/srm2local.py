@@ -55,7 +55,7 @@ def callback_entrypoint(payload, db):
     if files is not None:
         for f in files:
             filename = basename(f)
-            db.set(f'{identifier}_{filename}', status)
+            db.set(f'{identifier}_files_{filename}', status)
     else:
         db.set(f'{identifier}_status', status)
 

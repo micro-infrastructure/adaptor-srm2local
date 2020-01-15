@@ -1,5 +1,5 @@
 BootStrap: docker
-From: ubuntu:16.04
+From: ubuntu:18.04
 
 %files
     ./assets/srmclient-2.6.28.tar.gz    /var/local
@@ -9,7 +9,7 @@ From: ubuntu:16.04
     ./src/download.py                   /var/local
 
 %post
-    apt-get update && apt-get install -y wget curl python3 --no-install-recommends
+    apt-get update && apt-get install -y wget curl python3 gnupg2 --no-install-recommends
 
     echo "deb [trusted=yes] http://repository.egi.eu/sw/production/cas/1/current egi-igtf core" >> /etc/apt/sources.list
     wget -q -O - http://repository.egi.eu/sw/production/cas/1/current/GPG-KEY-EUGridPMA-RPM-3 | apt-key add -
