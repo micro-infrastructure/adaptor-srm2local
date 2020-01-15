@@ -72,13 +72,13 @@ def download(files):
         '-use_urlcopy_script=true',
         '-urlcopy=/var/local/lta-url-copy.sh',
         '-server_mode=passive',
-        '-x509_user_proxy={proxy_file}',
-        '-copyjobfile={copyjob_file}'
+        f'-x509_user_proxy={proxy_file}',
+        f'-copyjobfile={copyjob_file}'
     ]
 
     try:
         callback(identifier, 'downloading', files, callback_url)
-        run(command, stdout=PIPE)
+        run(command, stdout=PIPE, check=True)
         callback(identifier, 'ready', files, callback_url)
     except Exception as e:
         error = str(e)
